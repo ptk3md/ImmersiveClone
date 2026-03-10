@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Imersão em Chinês</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">中</div>
+      <div>
+        <h1>Imersão em Chinês</h1>
+        <p>Aprendizado por frases graduais</p>
+      </div>
+    </div>
+
+    <nav class="lesson-nav" id="lessonNav"></nav>
+  </header>
+
+  <main class="app-shell">
+    <aside class="sidebar">
+      <section class="panel">
+        <h2>Controles</h2>
+
+        <label class="toggle">
+          <input type="checkbox" id="togglePinyin" checked />
+          <span>Mostrar pinyin</span>
+        </label>
+
+        <label class="toggle">
+          <input type="checkbox" id="toggleCharacters" checked />
+          <span>Mostrar caracteres</span>
+        </label>
+
+        <label class="toggle">
+          <input type="checkbox" id="toggleTranslation" checked />
+          <span>Mostrar tradução</span>
+        </label>
+
+        <label class="toggle">
+          <input type="checkbox" id="toggleNotes" checked />
+          <span>Mostrar notas</span>
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2>Busca</h2>
+        <input
+          type="search"
+          id="searchInput"
+          class="search"
+          placeholder="Buscar em pinyin, hanzi ou tradução"
+          autocomplete="off"
+        />
+      </section>
+
+      <section class="panel">
+        <h2>Progresso</h2>
+        <div class="progress-meta">
+          <span id="lessonTitle">Lição 1</span>
+          <span id="lessonCount">0 itens</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div class="content-header">
+        <div>
+          <h2 id="contentTitle">Lição 1</h2>
+          <p id="contentSubtitle">Frases graduais com tradução para português do Brasil</p>
+        </div>
+
+        <div class="content-actions">
+          <button id="expandAllBtn" class="btn">Revelar tudo</button>
+          <button id="collapseAllBtn" class="btn btn-secondary">Ocultar traduções</button>
+        </div>
+      </div>
+
+      <div id="lessonContent" class="lesson-content"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
