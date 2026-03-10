@@ -1,215 +1,391 @@
-const lessonNav = document.getElementById("lessonNav");
-const lessonContent = document.getElementById("lessonContent");
-const contentTitle = document.getElementById("contentTitle");
-const contentSubtitle = document.getElementById("contentSubtitle");
-const lessonTitle = document.getElementById("lessonTitle");
-const lessonCount = document.getElementById("lessonCount");
-const progressFill = document.getElementById("progressFill");
+const courseScreen = document.getElementById("courseScreen");
+const lessonScreen = document.getElementById("lessonScreen");
+const courseAccordion = document.getElementById("courseAccordion");
 
-const togglePinyin = document.getElementById("togglePinyin");
-const toggleCharacters = document.getElementById("toggleCharacters");
-const toggleTranslation = document.getElementById("toggleTranslation");
-const toggleNotes = document.getElementById("toggleNotes");
-const searchInput = document.getElementById("searchInput");
-const expandAllBtn = document.getElementById("expandAllBtn");
-const collapseAllBtn = document.getElementById("collapseAllBtn");
+const backBtn = document.getElementById("backBtn");
+const lessonTitleEl = document.getElementById("lessonTitle");
+const sentenceProgressEl = document.getElementById("sentenceProgress");
+const sentenceCounterEl = document.getElementById("sentenceCounter");
 
-const ALL_LESSONS = COURSE_DATA.levels.flatMap((level) =>
-  level.lessons.map((lesson) => ({
-    ...lesson,
-    levelId: level.id,
-    levelTitle: level.title,
-    levelSubtitle: level.subtitle
-  }))
-);
+const pinyinLine = document.getElementById("pinyinLine");
+const charactersLine = document.getElementById("charactersLine");
+const translationLine = document.getElementById("translationLine");
 
-let currentLessonId = ALL_LESSONS[0]?.id || null;
-let currentFilter = "";
+const newWordBadge = document.getElementById("newWordBadge");
+const vocabStrip = document.getElementById("vocabStrip");
 
-function buildLessonNav() {
-  lessonNav.innerHTML = "";
+const repeatBtn = document.getElementById("repeatBtn");
+const speedBtn = document.getElementById("speedBtn");
+const playBtn = document.getElementById("playBtn");
+const listBtn = document.getElementById("listBtn");
+const notesBtn = document.getElementById("notesBtn");
+const prevSentenceBtn = document.getElementById("prevSentenceBtn");
+const nextSentenceBtn = document.getElementById("nextSentenceBtn");
 
-  ALL_LESSONS.forEach((lesson) => {
-    const button = document.createElement("button");
-    button.className = "lesson-chip";
-    button.textContent = lesson.title;
-    button.dataset.lessonId = lesson.id;
+const overlayPanel = document.getElementById("overlayPanel");
+const overlayTitle = document.getElementById("overlayTitle");
+const overlayContent = document.getElementById("overlayContent");
+const closeOverlayBtn = document.getElementById("closeOverlayBtn");
 
-    if (lesson.id === currentLessonId) {
-      button.classList.add("active");
-    }
+let selectedLessonId = "lesson-18";
+let currentSentenceIndex = 0;
+let repeatMode = false;
+let speedMode = "B";
 
-    button.addEventListener("click", () => {
-      currentLessonId = lesson.id;
-      syncActiveLessonChip();
-      renderLesson();
+function getAllLessons() {
+  return APP_DATA.levels.flatMap(level =>
+    level.lessons.map(lesson => ({
+      ...lesson,
+      levelId: level.id,
+      levelTitle: level.title
+    }))
+  );
+}
+
+function getLessonById(id) {
+  return getAllLessons().find(lesson => lesson.id === id);
+}
+
+function renderCourseAccordion() {
+  courseAccordion.innerHTML = "";
+
+  APP_DATA.levels.forEach(level => {
+    const block = document.createElement("section");
+    block.className = "level-block";
+    if (level.expanded) block.classList.add("expanded");
+
+    const header = document.createElement("button");
+    header.className = "level-header";
+
+    const left = document.createElement("div");
+    left.className = "level-header-left";
+
+    const title = document.createElement("div");
+    title.className = "level-title";
+    title.textContent = level.title;
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "level-subtitle";
+    subtitle.textContent = level.subtitle || "";
+
+    left.appendChild(title);
+    if (level.subtitle) left.appendChild(subtitle);
+
+    const chev = document.createElement("div");
+    chev.className = "level-chevron";
+    chev.textContent = block.classList.contains("expanded") ? "▾" : "▸";
+
+    header.appendChild(left);
+    header.appendChild(chev);
+
+    header.addEventListener("click", () => {
+      block.classList.toggle("expanded");
+      chev.textContent = block.classList.contains("expanded") ? "▾" : "▸";
     });
 
-    lessonNav.appendChild(button);
+    const lessonList = document.createElement("div");
+    lessonList.className = "lesson-list";
+
+    level.lessons.forEach(lesson => {
+      const row = document.createElement("div");
+      row.className = "lesson-row";
+      if (lesson.id === selectedLessonId) row.classList.add("selected");
+
+      const bar = document.createElement("div");
+      bar.className = "lesson-row-bar";
+
+      const content = document.createElement("div");
+      content.className = "lesson-row-content";
+
+      const rowTitle = document.createElement("div");
+      rowTitle.className = "lesson-row-title";
+      rowTitle.textContent = lesson.title;
+
+      const meta = document.createElement("div");
+      meta.className = "lesson-row-meta";
+      meta.textContent = lesson.meta || "";
+
+      content.appendChild(rowTitle);
+      if (lesson.meta) content.appendChild(meta);
+
+      row.appendChild(bar);
+      row.appendChild(content);
+
+      row.addEventListener("click", () => {
+        selectedLessonId = lesson.id;
+        currentSentenceIndex = 0;
+        renderCourseAccordion();
+        openLesson();
+      });
+
+      lessonList.appendChild(row);
+    });
+
+    block.appendChild(header);
+    block.appendChild(lessonList);
+    courseAccordion.appendChild(block);
   });
 }
 
-function syncActiveLessonChip() {
-  const chips = lessonNav.querySelectorAll(".lesson-chip");
-  chips.forEach((chip) => {
-    chip.classList.toggle("active", chip.dataset.lessonId === currentLessonId);
-  });
-}
-
-function getCurrentLesson() {
-  return ALL_LESSONS.find((lesson) => lesson.id === currentLessonId) || ALL_LESSONS[0];
-}
-
-function normalize(text) {
-  return String(text)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function itemMatchesFilter(item, filter) {
-  if (!filter) return true;
-
-  const haystack = normalize(
-    `${item.pinyin} ${item.characters} ${item.translation} ${item.note || ""}`
-  );
-
-  return haystack.includes(normalize(filter));
-}
-
-function createLine(className, text, masked = false) {
-  const p = document.createElement("p");
-  p.className = `line ${className}${masked ? " masked" : ""}`;
-  p.textContent = text;
-
-  p.addEventListener("click", () => {
-    p.classList.toggle("masked");
-  });
-
-  return p;
-}
-
-function renderLesson() {
-  const lesson = getCurrentLesson();
+function openLesson() {
+  const lesson = getLessonById(selectedLessonId);
   if (!lesson) return;
 
-  const filteredItems = lesson.items.filter((item) =>
-    itemMatchesFilter(item, currentFilter)
-  );
+  courseScreen.classList.remove("active");
+  lessonScreen.classList.add("active");
+  renderLessonSentence();
+}
 
-  contentTitle.textContent = `${lesson.levelTitle} · ${lesson.title}`;
-  contentSubtitle.textContent = lesson.subtitle || lesson.levelSubtitle || "";
-  lessonTitle.textContent = lesson.title;
-  lessonCount.textContent = `${filteredItems.length} ${filteredItems.length === 1 ? "item" : "itens"}`;
+function closeLesson() {
+  lessonScreen.classList.remove("active");
+  courseScreen.classList.add("active");
+  hideOverlay();
+}
 
-  const progress = lesson.items.length
-    ? Math.round((filteredItems.length / lesson.items.length) * 100)
-    : 0;
+function getCurrentSentence() {
+  const lesson = getLessonById(selectedLessonId);
+  if (!lesson || !lesson.sentences.length) return null;
+  return lesson.sentences[currentSentenceIndex];
+}
 
-  progressFill.style.width = `${progress}%`;
+function renderProgress(total, current) {
+  sentenceProgressEl.innerHTML = "";
 
-  lessonContent.innerHTML = "";
-  applyGlobalVisibility();
+  const max = Math.max(total, 25);
+  for (let i = 0; i < max; i += 1) {
+    const cell = document.createElement("div");
+    cell.className = "progress-cell";
 
-  if (!filteredItems.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "Nenhum resultado encontrado para esta busca.";
-    lessonContent.appendChild(empty);
+    if (i < current) cell.classList.add("done");
+    if (i === current) cell.classList.add("active");
+
+    sentenceProgressEl.appendChild(cell);
+  }
+}
+
+function resetRevealState() {
+  charactersLine.dataset.revealed = "false";
+  translationLine.dataset.revealed = "false";
+
+  charactersLine.className = "sentence-line reveal-line hidden-placeholder";
+  translationLine.className = "sentence-line reveal-line hidden-placeholder translation-placeholder";
+
+  charactersLine.textContent = "Show characters";
+  translationLine.textContent = "Show translation";
+}
+
+function renderVocab(sentence) {
+  vocabStrip.innerHTML = "";
+
+  const vocab = sentence.vocab || [];
+  vocab.forEach(item => {
+    const cell1 = document.createElement("div");
+    cell1.className = "vocab-cell";
+    cell1.textContent = item.pinyin;
+
+    const cell2 = document.createElement("div");
+    cell2.className = "vocab-cell";
+    cell2.textContent = item.characters;
+
+    const cell3 = document.createElement("div");
+    cell3.className = "vocab-cell";
+    cell3.textContent = item.translation;
+
+    vocabStrip.appendChild(cell1);
+    vocabStrip.appendChild(cell2);
+    vocabStrip.appendChild(cell3);
+  });
+}
+
+function renderLessonSentence() {
+  const lesson = getLessonById(selectedLessonId);
+  const sentence = getCurrentSentence();
+
+  if (!lesson || !sentence) {
+    lessonTitleEl.textContent = "Lesson";
+    pinyinLine.textContent = "";
+    charactersLine.textContent = "Show characters";
+    translationLine.textContent = "Show translation";
+    sentenceCounterEl.textContent = "0/0";
+    sentenceProgressEl.innerHTML = "";
+    vocabStrip.innerHTML = "";
     return;
   }
 
-  filteredItems.forEach((item, index) => {
-    const card = document.createElement("article");
-    card.className = "card";
+  lessonTitleEl.textContent = lesson.title;
+  sentenceCounterEl.textContent = `${currentSentenceIndex + 1}/${lesson.sentences.length}`;
+  pinyinLine.textContent = sentence.pinyin;
 
-    const cardTop = document.createElement("div");
-    cardTop.className = "card-top";
+  resetRevealState();
+  renderProgress(lesson.sentences.length, currentSentenceIndex);
+  renderVocab(sentence);
 
-    const cardIndex = document.createElement("div");
-    cardIndex.className = "card-index";
-    cardIndex.textContent = String(index + 1);
+  newWordBadge.style.display = sentence.newWord ? "inline-flex" : "none";
 
-    const cardMain = document.createElement("div");
-    cardMain.className = "card-main";
+  if (!overlayPanel.classList.contains("hidden")) {
+    if (overlayTitle.textContent === "Lista") renderSentenceListOverlay();
+    if (overlayTitle.textContent === "Notas") renderNotesOverlay();
+  }
+}
 
-    const pinyin = createLine("pinyin", item.pinyin, false);
-    const characters = createLine("characters", item.characters, false);
-    const translation = createLine("translation", item.translation, false);
+function revealCharacters() {
+  const sentence = getCurrentSentence();
+  if (!sentence) return;
 
-    cardMain.appendChild(pinyin);
-    cardMain.appendChild(characters);
-    cardMain.appendChild(translation);
+  charactersLine.dataset.revealed = "true";
+  charactersLine.className = "sentence-line reveal-line characters-visible";
+  charactersLine.textContent = sentence.characters;
+}
 
-    const metaRow = document.createElement("div");
-    metaRow.className = "meta-row";
+function revealTranslation() {
+  const sentence = getCurrentSentence();
+  if (!sentence) return;
 
-    const badge1 = document.createElement("span");
-    badge1.className = "badge";
-    badge1.textContent = "Toque numa linha para ocultar/revelar";
+  translationLine.dataset.revealed = "true";
+  translationLine.className = "sentence-line reveal-line translation-visible";
+  translationLine.textContent = sentence.translation;
+}
 
-    const badge2 = document.createElement("span");
-    badge2.className = "badge";
-    badge2.textContent = lesson.levelTitle;
+function nextSentence() {
+  const lesson = getLessonById(selectedLessonId);
+  if (!lesson || !lesson.sentences.length) return;
 
-    metaRow.appendChild(badge1);
-    metaRow.appendChild(badge2);
-    cardMain.appendChild(metaRow);
+  currentSentenceIndex += 1;
+  if (currentSentenceIndex >= lesson.sentences.length) {
+    currentSentenceIndex = repeatMode ? 0 : lesson.sentences.length - 1;
+  }
 
-    cardTop.appendChild(cardIndex);
-    cardTop.appendChild(cardMain);
+  renderLessonSentence();
+}
 
-    const cardBottom = document.createElement("div");
-    cardBottom.className = "card-bottom";
+function prevSentence() {
+  const lesson = getLessonById(selectedLessonId);
+  if (!lesson || !lesson.sentences.length) return;
 
-    const note = document.createElement("p");
-    note.className = "note";
-    note.textContent = item.note || "Sem nota.";
-    cardBottom.appendChild(note);
+  currentSentenceIndex -= 1;
+  if (currentSentenceIndex < 0) {
+    currentSentenceIndex = repeatMode ? lesson.sentences.length - 1 : 0;
+  }
 
-    card.appendChild(cardTop);
-    card.appendChild(cardBottom);
-    lessonContent.appendChild(card);
+  renderLessonSentence();
+}
+
+function showOverlay(title) {
+  overlayTitle.textContent = title;
+  overlayPanel.classList.remove("hidden");
+}
+
+function hideOverlay() {
+  overlayPanel.classList.add("hidden");
+}
+
+function renderSentenceListOverlay() {
+  const lesson = getLessonById(selectedLessonId);
+  if (!lesson) return;
+
+  overlayContent.innerHTML = "";
+  const list = document.createElement("div");
+  list.className = "overlay-list";
+
+  lesson.sentences.forEach((sentence, index) => {
+    const row = document.createElement("div");
+    row.className = "overlay-row";
+    if (index === currentSentenceIndex) row.classList.add("active");
+
+    const idx = document.createElement("div");
+    idx.className = "overlay-index";
+    idx.textContent = String(index + 1);
+
+    const main = document.createElement("div");
+    main.className = "overlay-main";
+
+    const top = document.createElement("div");
+    top.className = "overlay-main-top";
+    top.textContent = sentence.pinyin;
+
+    const bottom = document.createElement("div");
+    bottom.className = "overlay-main-bottom";
+    bottom.textContent = sentence.translation;
+
+    main.appendChild(top);
+    main.appendChild(bottom);
+
+    row.appendChild(idx);
+    row.appendChild(main);
+
+    row.addEventListener("click", () => {
+      currentSentenceIndex = index;
+      renderLessonSentence();
+    });
+
+    list.appendChild(row);
   });
+
+  overlayContent.appendChild(list);
 }
 
-function applyGlobalVisibility() {
-  lessonContent.classList.toggle("hidden-global-pinyin", !togglePinyin.checked);
-  lessonContent.classList.toggle("hidden-global-characters", !toggleCharacters.checked);
-  lessonContent.classList.toggle("hidden-global-translation", !toggleTranslation.checked);
-  lessonContent.classList.toggle("hidden-global-notes", !toggleNotes.checked);
-}
+function renderNotesOverlay() {
+  const sentence = getCurrentSentence();
+  overlayContent.innerHTML = "";
 
-function revealAll() {
-  lessonContent.querySelectorAll(".masked").forEach((el) => {
-    el.classList.remove("masked");
+  const block = document.createElement("div");
+  block.className = "note-block";
+
+  (sentence?.notes || ["Sem notas para esta frase."]).forEach(noteText => {
+    const card = document.createElement("div");
+    card.className = "note-card";
+    card.textContent = noteText;
+    block.appendChild(card);
   });
 
-  togglePinyin.checked = true;
-  toggleCharacters.checked = true;
-  toggleTranslation.checked = true;
-  toggleNotes.checked = true;
-  applyGlobalVisibility();
+  overlayContent.appendChild(block);
 }
 
-function hideTranslationsOnly() {
-  toggleTranslation.checked = false;
-  applyGlobalVisibility();
-}
-
-togglePinyin.addEventListener("change", applyGlobalVisibility);
-toggleCharacters.addEventListener("change", applyGlobalVisibility);
-toggleTranslation.addEventListener("change", applyGlobalVisibility);
-toggleNotes.addEventListener("change", applyGlobalVisibility);
-
-searchInput.addEventListener("input", (event) => {
-  currentFilter = event.target.value;
-  renderLesson();
+charactersLine.addEventListener("click", () => {
+  if (charactersLine.dataset.revealed !== "true") revealCharacters();
 });
 
-expandAllBtn.addEventListener("click", revealAll);
-collapseAllBtn.addEventListener("click", hideTranslationsOnly);
+translationLine.addEventListener("click", () => {
+  if (translationLine.dataset.revealed !== "true") revealTranslation();
+});
 
-buildLessonNav();
-renderLesson();
+playBtn.addEventListener("click", nextSentence);
+nextSentenceBtn.addEventListener("click", nextSentence);
+prevSentenceBtn.addEventListener("click", prevSentence);
+
+repeatBtn.addEventListener("click", () => {
+  repeatMode = !repeatMode;
+  repeatBtn.style.opacity = repeatMode ? "1" : "0.55";
+});
+
+speedBtn.addEventListener("click", () => {
+  const cycle = ["A", "B", "C"];
+  const next = cycle[(cycle.indexOf(speedMode) + 1) % cycle.length];
+  speedMode = next;
+  speedBtn.textContent = speedMode;
+});
+
+listBtn.addEventListener("click", () => {
+  showOverlay("Lista");
+  renderSentenceListOverlay();
+});
+
+notesBtn.addEventListener("click", () => {
+  showOverlay("Notas");
+  renderNotesOverlay();
+});
+
+closeOverlayBtn.addEventListener("click", hideOverlay);
+backBtn.addEventListener("click", closeLesson);
+
+document.addEventListener("keydown", (event) => {
+  if (!lessonScreen.classList.contains("active")) return;
+
+  if (event.key === "ArrowRight") nextSentence();
+  if (event.key === "ArrowLeft") prevSentence();
+  if (event.key === "c") revealCharacters();
+  if (event.key === "t") revealTranslation();
+  if (event.key === "Escape") hideOverlay();
+});
+
+renderCourseAccordion();
