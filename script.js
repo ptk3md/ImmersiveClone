@@ -1,183 +1,3 @@
-const lessons = [
-  {
-    id: 1,
-    title: "Lição 1",
-    subtitle: "Fundamentos iniciais",
-    items: [
-      {
-        pinyin: "wǒ",
-        characters: "我",
-        translation: "Eu, mim",
-        note: "Primeiro pronome pessoal singular."
-      },
-      {
-        pinyin: "péngyou",
-        characters: "朋友",
-        translation: "Amigo",
-        note: "Substantivo muito frequente em diálogos básicos."
-      },
-      {
-        pinyin: "wǒ de péngyou",
-        characters: "我的朋友",
-        translation: "Meu amigo",
-        note: "de (的) marca posse."
-      },
-      {
-        pinyin: "nǐ",
-        characters: "你",
-        translation: "Você",
-        note: "Pronome de segunda pessoa."
-      },
-      {
-        pinyin: "nǐ de péngyou",
-        characters: "你的朋友",
-        translation: "Seu amigo",
-        note: "Estrutura paralela à anterior."
-      },
-      {
-        pinyin: "nǐ shì wǒ de péngyou",
-        characters: "你是我的朋友",
-        translation: "Você é meu amigo",
-        note: "shì (是) funciona como verbo 'ser'."
-      },
-      {
-        pinyin: "wǒ shì nǐ de péngyou",
-        characters: "我是你的朋友",
-        translation: "Eu sou seu amigo",
-        note: "Mesma estrutura com ordem trocada."
-      },
-      {
-        pinyin: "zhè shì wǒ de péngyou",
-        characters: "这是我的朋友",
-        translation: "Este é meu amigo",
-        note: "zhè (这) significa 'este/isto'."
-      },
-      {
-        pinyin: "bù",
-        characters: "不",
-        translation: "Não",
-        note: "Usado para negação."
-      },
-      {
-        pinyin: "nǐ bú shì wǒ de péngyou",
-        characters: "你不是我的朋友",
-        translation: "Você não é meu amigo",
-        note: "bù muda para bú antes de sílaba de quarto tom."
-      },
-      {
-        pinyin: "nà shì wǒ de",
-        characters: "那是我的",
-        translation: "Aquilo é meu",
-        note: "nà (那) significa 'aquilo/aquele'."
-      },
-      {
-        pinyin: "zhè shì wǒ de, nà shì nǐ de",
-        characters: "这是我的，那是你的",
-        translation: "Isto é meu, aquilo é seu",
-        note: "Boa frase para contraste entre zhè e nà."
-      }
-    ]
-  },
-  {
-    id: 2,
-    title: "Lição 2",
-    subtitle: "Perguntas simples e demonstrativos",
-    items: [
-      {
-        pinyin: "ma",
-        characters: "吗",
-        translation: "Partícula de pergunta",
-        note: "Transforma uma frase afirmativa em interrogativa."
-      },
-      {
-        pinyin: "zhège",
-        characters: "这个",
-        translation: "Este, isto",
-        note: "Forma completa com classificador demonstrativo."
-      },
-      {
-        pinyin: "nàge",
-        characters: "那个",
-        translation: "Aquele, aquilo",
-        note: "Contraste direto com zhège."
-      },
-      {
-        pinyin: "shéi",
-        characters: "谁",
-        translation: "Quem",
-        note: "Pronome interrogativo."
-      },
-      {
-        pinyin: "tā",
-        characters: "他 / 她",
-        translation: "Ele / ela",
-        note: "Mesmo pinyin para masculino e feminino."
-      },
-      {
-        pinyin: "zhège shì shéi",
-        characters: "这个是谁",
-        translation: "Quem é este?",
-        note: "Estrutura interrogativa básica."
-      },
-      {
-        pinyin: "tā shì wǒ de péngyou ma",
-        characters: "他是我的朋友吗",
-        translation: "Ele é meu amigo?",
-        note: "Pergunta com ma no fim."
-      }
-    ]
-  },
-  {
-    id: 3,
-    title: "Lição 3",
-    subtitle: "Existência e posse",
-    items: [
-      {
-        pinyin: "yǒu",
-        characters: "有",
-        translation: "Ter, existir",
-        note: "Verbo muito frequente."
-      },
-      {
-        pinyin: "méiyǒu",
-        characters: "没有",
-        translation: "Não ter",
-        note: "Negação comum de yǒu."
-      },
-      {
-        pinyin: "shǒujī",
-        characters: "手机",
-        translation: "Celular",
-        note: "Vocabulário cotidiano."
-      },
-      {
-        pinyin: "píngguǒ",
-        characters: "苹果",
-        translation: "Maçã",
-        note: "Substantivo concreto e comum em lições iniciais."
-      },
-      {
-        pinyin: "wǒ yǒu yí gè shǒujī",
-        characters: "我有一个手机",
-        translation: "Eu tenho um celular",
-        note: "gè (个) é classificador geral."
-      },
-      {
-        pinyin: "nǐ yǒu ma",
-        characters: "你有吗",
-        translation: "Você tem?",
-        note: "Pergunta curta e natural."
-      },
-      {
-        pinyin: "wǒ méiyǒu",
-        characters: "我没有",
-        translation: "Eu não tenho",
-        note: "Resposta negativa direta."
-      }
-    ]
-  }
-];
-
 const lessonNav = document.getElementById("lessonNav");
 const lessonContent = document.getElementById("lessonContent");
 const contentTitle = document.getElementById("contentTitle");
@@ -194,17 +14,26 @@ const searchInput = document.getElementById("searchInput");
 const expandAllBtn = document.getElementById("expandAllBtn");
 const collapseAllBtn = document.getElementById("collapseAllBtn");
 
-let currentLessonId = 1;
+const ALL_LESSONS = COURSE_DATA.levels.flatMap((level) =>
+  level.lessons.map((lesson) => ({
+    ...lesson,
+    levelId: level.id,
+    levelTitle: level.title,
+    levelSubtitle: level.subtitle
+  }))
+);
+
+let currentLessonId = ALL_LESSONS[0]?.id || null;
 let currentFilter = "";
 
 function buildLessonNav() {
   lessonNav.innerHTML = "";
 
-  lessons.forEach((lesson) => {
+  ALL_LESSONS.forEach((lesson) => {
     const button = document.createElement("button");
     button.className = "lesson-chip";
     button.textContent = lesson.title;
-    button.dataset.lessonId = String(lesson.id);
+    button.dataset.lessonId = lesson.id;
 
     if (lesson.id === currentLessonId) {
       button.classList.add("active");
@@ -223,15 +52,12 @@ function buildLessonNav() {
 function syncActiveLessonChip() {
   const chips = lessonNav.querySelectorAll(".lesson-chip");
   chips.forEach((chip) => {
-    chip.classList.toggle(
-      "active",
-      Number(chip.dataset.lessonId) === currentLessonId
-    );
+    chip.classList.toggle("active", chip.dataset.lessonId === currentLessonId);
   });
 }
 
 function getCurrentLesson() {
-  return lessons.find((lesson) => lesson.id === currentLessonId) || lessons[0];
+  return ALL_LESSONS.find((lesson) => lesson.id === currentLessonId) || ALL_LESSONS[0];
 }
 
 function normalize(text) {
@@ -266,16 +92,16 @@ function createLine(className, text, masked = false) {
 
 function renderLesson() {
   const lesson = getCurrentLesson();
+  if (!lesson) return;
+
   const filteredItems = lesson.items.filter((item) =>
     itemMatchesFilter(item, currentFilter)
   );
 
-  contentTitle.textContent = lesson.title;
-  contentSubtitle.textContent = lesson.subtitle;
+  contentTitle.textContent = `${lesson.levelTitle} · ${lesson.title}`;
+  contentSubtitle.textContent = lesson.subtitle || lesson.levelSubtitle || "";
   lessonTitle.textContent = lesson.title;
-  lessonCount.textContent = `${filteredItems.length} ${
-    filteredItems.length === 1 ? "item" : "itens"
-  }`;
+  lessonCount.textContent = `${filteredItems.length} ${filteredItems.length === 1 ? "item" : "itens"}`;
 
   const progress = lesson.items.length
     ? Math.round((filteredItems.length / lesson.items.length) * 100)
@@ -284,7 +110,6 @@ function renderLesson() {
   progressFill.style.width = `${progress}%`;
 
   lessonContent.innerHTML = "";
-
   applyGlobalVisibility();
 
   if (!filteredItems.length) {
@@ -326,7 +151,7 @@ function renderLesson() {
 
     const badge2 = document.createElement("span");
     badge2.className = "badge";
-    badge2.textContent = lesson.title;
+    badge2.textContent = lesson.levelTitle;
 
     metaRow.appendChild(badge1);
     metaRow.appendChild(badge2);
@@ -350,22 +175,10 @@ function renderLesson() {
 }
 
 function applyGlobalVisibility() {
-  lessonContent.classList.toggle(
-    "hidden-global-pinyin",
-    !togglePinyin.checked
-  );
-  lessonContent.classList.toggle(
-    "hidden-global-characters",
-    !toggleCharacters.checked
-  );
-  lessonContent.classList.toggle(
-    "hidden-global-translation",
-    !toggleTranslation.checked
-  );
-  lessonContent.classList.toggle(
-    "hidden-global-notes",
-    !toggleNotes.checked
-  );
+  lessonContent.classList.toggle("hidden-global-pinyin", !togglePinyin.checked);
+  lessonContent.classList.toggle("hidden-global-characters", !toggleCharacters.checked);
+  lessonContent.classList.toggle("hidden-global-translation", !toggleTranslation.checked);
+  lessonContent.classList.toggle("hidden-global-notes", !toggleNotes.checked);
 }
 
 function revealAll() {
