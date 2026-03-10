@@ -3,87 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Imersão em Chinês</title>
+  <title>Immersive Chinese Clone</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">中</div>
-      <div>
-        <h1>Imersão em Chinês</h1>
-        <p>Aprendizado por frases graduais</p>
-      </div>
-    </div>
-
-    <nav class="lesson-nav" id="lessonNav"></nav>
-  </header>
-
-  <main class="app-shell">
-    <aside class="sidebar">
-      <section class="panel">
-        <h2>Controles</h2>
-
-        <label class="toggle">
-          <input type="checkbox" id="togglePinyin" checked />
-          <span>Mostrar pinyin</span>
-        </label>
-
-        <label class="toggle">
-          <input type="checkbox" id="toggleCharacters" checked />
-          <span>Mostrar caracteres</span>
-        </label>
-
-        <label class="toggle">
-          <input type="checkbox" id="toggleTranslation" checked />
-          <span>Mostrar tradução</span>
-        </label>
-
-        <label class="toggle">
-          <input type="checkbox" id="toggleNotes" checked />
-          <span>Mostrar notas</span>
-        </label>
-      </section>
-
-      <section class="panel">
-        <h2>Busca</h2>
-        <input
-          type="search"
-          id="searchInput"
-          class="search"
-          placeholder="Buscar em pinyin, hanzi ou tradução"
-          autocomplete="off"
-        />
-      </section>
-
-      <section class="panel">
-        <h2>Progresso</h2>
-        <div class="progress-meta">
-          <span id="lessonTitle">Lição 1</span>
-          <span id="lessonCount">0 itens</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-      </section>
-    </aside>
-
-    <section class="content">
-      <div class="content-header">
-        <div>
-          <h2 id="contentTitle">Lição 1</h2>
-          <p id="contentSubtitle">Frases graduais com tradução para português do Brasil</p>
+  <div id="app" class="app">
+    <section id="courseScreen" class="screen active">
+      <header class="top-header">
+        <div class="top-left">
+          <button class="icon-btn" aria-label="menu">☰</button>
         </div>
 
-        <div class="content-actions">
-          <button id="expandAllBtn" class="btn">Revelar tudo</button>
-          <button id="collapseAllBtn" class="btn btn-secondary">Ocultar traduções</button>
-        </div>
-      </div>
+        <div class="top-title">Immersive Chinese</div>
 
-      <div id="lessonContent" class="lesson-content"></div>
+        <div class="top-right">
+          <button class="icon-btn" aria-label="config">⚙</button>
+        </div>
+      </header>
+
+      <nav class="tabbar">
+        <button class="tab active">Serial Course</button>
+        <button class="tab">Repetition Training</button>
+        <button class="tab">Materials</button>
+        <button class="tab">Pronunciation</button>
+      </nav>
+
+      <main class="course-layout">
+        <div id="courseAccordion" class="course-accordion"></div>
+      </main>
     </section>
-  </main>
+
+    <section id="lessonScreen" class="screen lesson-screen">
+      <header class="lesson-header">
+        <button id="backBtn" class="back-btn" aria-label="voltar">←</button>
+        <div class="lesson-title-wrap">
+          <h1 id="lessonTitle">Lesson 1</h1>
+        </div>
+        <button class="settings-btn" aria-label="configurações">⚙</button>
+      </header>
+
+      <div id="sentenceProgress" class="sentence-progress"></div>
+
+      <div class="sentence-counter">
+        <span id="sentenceCounter">1/25</span>
+      </div>
+
+      <div class="lesson-main">
+        <div class="sentence-area">
+          <div class="sentence-card">
+            <div
+              id="pinyinLine"
+              class="sentence-line pinyin-line"
+              role="button"
+              tabindex="0"
+            ></div>
+
+            <div class="divider"></div>
+
+            <div
+              id="charactersLine"
+              class="sentence-line reveal-line hidden-placeholder"
+              role="button"
+              tabindex="0"
+            >
+              Show characters
+            </div>
+
+            <div class="divider"></div>
+
+            <div
+              id="translationLine"
+              class="sentence-line reveal-line hidden-placeholder translation-placeholder"
+              role="button"
+              tabindex="0"
+            >
+              Show translation
+            </div>
+          </div>
+
+          <div class="vocab-strip-wrap">
+            <div id="newWordBadge" class="new-word-badge">new word</div>
+            <div id="vocabStrip" class="vocab-strip"></div>
+          </div>
+        </div>
+
+        <aside class="toolbar">
+          <button id="repeatBtn" class="tool-btn" title="repetição">↻▶</button>
+          <button id="speedBtn" class="tool-btn" title="velocidade">B</button>
+          <button id="playBtn" class="play-btn" title="próxima frase">▶</button>
+          <button id="listBtn" class="tool-btn" title="lista">☷</button>
+          <button id="notesBtn" class="tool-btn" title="notas">📋</button>
+        </aside>
+      </div>
+
+      <button id="prevSentenceBtn" class="nav-arrow nav-arrow-left" aria-label="anterior">‹</button>
+      <button id="nextSentenceBtn" class="nav-arrow nav-arrow-right" aria-label="próxima">›</button>
+
+      <div id="overlayPanel" class="overlay-panel hidden">
+        <div class="overlay-header">
+          <h2 id="overlayTitle">Lista</h2>
+          <button id="closeOverlayBtn" class="close-overlay-btn">✕</button>
+        </div>
+        <div id="overlayContent" class="overlay-content"></div>
+      </div>
+    </section>
+  </div>
 
   <script src="data.js"></script>
   <script src="script.js"></script>
